@@ -1,24 +1,44 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Recipe } from '../recipe.model';
-import { from } from 'rxjs';
+import { from, Subscription } from 'rxjs';
+import { RecipeService } from '../recipe.service';
+import { Router, ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-recipe-list',
   templateUrl: './recipe-list.component.html',
   styleUrls: ['./recipe-list.component.css']
 })
-export class RecipeListComponent implements OnInit {
+export class RecipeListComponent implements OnInit, OnDestroy {
+  // @Output() recipeWasSelected = new EventEmitter<Recipe>();
 
-  recipes: Recipe[] = [
-    new Recipe('First recipe', 'Taste it before any thing', 
-    'https://www.cookingclassy.com/wp-content/uploads/2019/09/meatballs-21.jpg'),
-    new Recipe('First recipe', 'Taste it before any thing', 
-    'https://cdn.loveandlemons.com/wp-content/uploads/2020/03/pantry-recipes-2.jpg')
-  ];
+  recipes: Recipe[];
+  subscription: Subscription;
+  constructor(private recipeService: RecipeService,
+              private router: Router,
+              private route: ActivatedRoute) { }
 
-  constructor() { }
 
-  ngOnInit(): void {
+  ngOnInit() {
+    this.subscription = this.recipeService.recipesChanged
+      .subscribe(
+        (recipes: Recipe[]) => {
+          this.recipes = recipes;
+        }
+      );
+    this.recipes = this.recipeService.getRecipes();
+  }
+
+  // onSelect(recipe: Recipe){
+  //   this.recipeWasSelected.emit(recipe);
+  // }
+
+
+  onNewRecipe(){
+    this.router.navigate(['new'], {relativeTo: this.route});
+  }
+  ngOnDestroy() {
+    this.subscription.unsubscribe();
   }
 
 }
